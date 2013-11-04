@@ -8,14 +8,12 @@ Uptime
 Uptime::
   A remote monitoring application using Node.js, MongoDB and Twitter Bootstrap
 
->Provides a easy way to host each component of the stack required to support Uptime.  
-
 + Mongodb::
-  Sample Dockerfile to build a mongodb docker instance; use -v to map the volume to the host for persistence.
+    Sample Dockerfile to build a mongodb docker instance; use -v to map the volume to the host for persistence.
 + Api::
-  Sample Dockerfile to build the api controller without the monitoring built in.
+    Sample Dockerfile to build the api controller without the monitoring built in.
 + Monitor::
-  Sample Dockerfile to build the monitoring instance to poll with.
+    Sample Dockerfile to build the monitoring instance to poll with.
 
 Note::
   I have not spent the time updating the system running this or adapting these for 0.6.5.  Using Links and Named containers it could be better (maybe?) like below.
