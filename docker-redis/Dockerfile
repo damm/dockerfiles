@@ -12,5 +12,5 @@ RUN mkdir /etc/redis
 RUN mkdir -p /data/
 ADD redis.conf /etc/redis/redis.conf
 EXPOSE 6379
-ENTRYPOINT "/usr/local/bin/redis-server /etc/redis/redis.conf"
+ENTRYPOINT ["/usr/local/bin/redis-server","/etc/redis/redis.conf"]
 VOLUME ["/data/"]
