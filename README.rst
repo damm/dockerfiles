@@ -11,5 +11,9 @@ dependencies.
 Dockerfiles
 ------------
 
-Here are some Dockerfiles I have created that may be of use for inspiration for others.
+Some example Dockerfiles can be found below.
+
+`Uptime <https://github.com/damm/dockerfiles/tree/master/uptime/>`_.
+
+`Redis <https://github.com/damm/dockerfiles/tree/master/redis/>`_.
 
