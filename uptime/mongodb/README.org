@@ -1,0 +1,62 @@
+#+STARTUP: showeverything
+#+TITLE: Siteuptime MongoDB Docker Instance
+#+EMAIL: scott@mopub.com
+#+AUTHOR: Scott Likens
+
+* Docker way of Hosting MongoDB
+
+#+begin_quote
+Enabling authentication provides a way to limit access to users with privilege roles.
+#+end_quote
+
+  I have not automated the authentication.  It would be good; maybe easier to block the port in your own preference.
+
+1. Omitted as it is commited in this git repo
+
+2. Create the initial image
+      
+     #+begin_example 
+     docker build -t siteuptime/mongodb .
+     #+end_example
+
+3. Run the image in tmux to setup authentication
+
+   #+begin_example
+   tmux
+   docker run -p 27017:27017 siteuptime/mongodb
+   #+end_example
+   
+     + Now open another window and run the mongo command to connect
+
+     #+begin_example
+     mongo 172.29.33.35
+     MongoDB shell version: 2.2.0
+     connecting to: 172.29.33.35/test
+     db.addUser('root','password')
+     use uptime
+     db.addUser('uptime','bob')
+     #+end_example
+
+4. Stop Mongodb
+
+   Go back to the original window that runs MongoDB and hit ^C to shut it down.
+
+5. Enable Authentication
+
+     #+begin_example
+     FROM    ubuntu:latest
+     MAINTAINER <name>
+     RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+     RUN echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | tee /etc/apt/sources.list.d/10gen.list
+     RUN dpkg-divert --local --rename --add /sbin/initctl
+     RUN ln -s /bin/true /sbin/initctl
+     RUN apt-get update
+     RUN apt-get install mongodb-10gen -y
+     RUN mkdir -p /data/db
+     EXPOSE 27017 28017
+     ENTRYPOINT taskset -c 1 mongod --auth
+     VOLUME ["/data"]
+     #+end_example
+
+6. Add Make this persistent.  I use Runit to keep my docker instances running.  
+
