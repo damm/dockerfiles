@@ -3,9 +3,9 @@ MAINTAINER <scott@mopub.com>
 RUN apt-get update
 RUN apt-get install wget build-essential -y
 WORKDIR /
-RUN wget http://download.redis.io/releases/redis-2.6.16.tar.gz
-RUN tar zxf redis-2.6.16.tar.gz
-WORKDIR /redis-2.6.16
+RUN wget http://download.redis.io/releases/redis-2.8.3.tar.gz
+RUN tar zxf redis-2.8.3.tar.gz
+WORKDIR /redis-2.8.3
 RUN make
 RUN make install
 RUN mkdir /etc/redis
