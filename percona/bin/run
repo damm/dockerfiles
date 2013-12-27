@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+
+main() {
+  set_env
+  write_config
+  initialize_db
+  fix_permissions
+  exec_mysql "$@"
+}
+
+initialize_db() {
+  if [[ ! -e /mysql/config/init.done ]] ; then
+    mysql_install_db --user=mysql \
+      --basedir=/usr \
+      --datadir=/mysql/db && \
+      touch /mysql/config/init.done
+  fi
+}
+
+set_env() {
+  if [[ -s /mysql/config/env ]] ; then
+    source /mysql/config/env
+  fi
+}
+
+write_config() {
+  if [[ ! -s /mysql/db/my.cnf ]] ; then
+    /mysql/bin/write-config && ln -sf /mysql/db/my.cnf /etc/my.cnf
+  fi
+}
+
+fix_permissions() {
+  chown -R mysql:mysql /mysql
+  chmod 640 /mysql/db/my.cnf
+}
+
+exec_mysql() {
+  export MYSQL_UNIX_PORT=/mysql/db/mysql.sock
+  /usr/sbin/mysqld \
+    --user=mysql \
+    --basedir=/usr \
+    --datadir=/mysql/db \
+    "$@" &
+  export mysql_pid="$!"
+  trap "kill -SIGQUIT $mysql_pid" TERM INT
+  wait $mysql_pid
+}
+
+main "$@"
