@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+
+main() {
+  set_env
+  start_sshd
+  exec_garbd "$@"
+}
+
+initialize_db() {
+  if [[ ! -e /mysql/config/init.done ]] ; then
+    mysql_install_db --user=mysql \
+      --basedir=/usr \
+      --datadir=/mysql/db && \
+      touch /mysql/config/init.done
+  fi
+}
+
+start_sshd() {
+    ROOTPW=$(head -c16 /dev/urandom |sha1sum |cut -c1-10)
+    printf "Root Password: ${ROOTPW}"
+    echo "root:${ROOTPW}" | chpasswd
+    mkdir -p /var/run/sshd
+    /usr/sbin/sshd -p22 -D &
+}
+
+set_env() {
+  if [[ -s /mysql/config/env ]] ; then
+    source /mysql/config/env
+  fi
+}
+
+write_config() {
+  if [[ ! -s /mysql/db/my.cnf ]] ; then
+    /mysql/bin/write-config 
+  fi
+}
+
+fix_permissions() {
+  chown -R mysql:mysql /mysql
+  chmod 640 /mysql/db/my.cnf
+  
+}
+
+exec_garbd() {
+if [ -z "${DB_PORT_4567_TCP_ADDR}" ]; then
+  echo "I don't have DB_PORT_4567_TCP_ADDR Set; so I don't know who to connect to!"
+  exit 1
+fi
+if [ -z "${DB_PORT_4567_TCP_PORT}" ]; then
+  echo "I don't have $DB_PORT_4567_TCP_PORT Set; so I am assuming the default of 4567!"
+  DB_PORT_4567_TCP_PORT=4567
+fi
+if [ -z "${GALERA_GROUP}" ]; then
+  echo "I have no Galera Group Defined.  Assuming *docker*"
+  GALERA_GROUP="docker"
+fi
+garbd -a gcomm://${DB_PORT_4567_TCP_ADDR}:${DB_PORT_4567_TCP_PORT} -g ${GALERA_GROUP} &
+export garbd_pid="$!"
+trap "kill -SIGQUIT $garbd_pid" TERM INT
+wait $garbd_pid
+}
+
+exec_mysql() {
+  cd /mysql/db
+  export MYSQL_UNIX_PORT=/mysql/db/mysql.sock
+  /usr/sbin/mysqld \
+    --user=mysql \
+    --basedir=/usr \
+    --datadir=/mysql/db \
+    "$@" &
+  export mysql_pid="$!"
+  trap "kill -SIGQUIT $mysql_pid" TERM INT
+  wait $mysql_pid
+}
+
+main "$@"

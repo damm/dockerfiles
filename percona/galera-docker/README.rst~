@@ -1,0 +1,11 @@
+.. image:: https://www.docker.io/static/img/linked/dockerlogo-horizontal.png
+
+Galera Docker Image
+------------
+
+To reduce deployment time in configuration file changes; I created a image with Galera preinstalled.  It is required for subimages.
+
+Building
+------------
+
+```docker build -t galera/golden .```

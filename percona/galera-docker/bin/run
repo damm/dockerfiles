@@ -6,8 +6,10 @@ set -e
 main() {
   set_env
   write_config
+  cd /etc;ln -s /mysql/db/my.cnf .
   initialize_db
   fix_permissions
+  start_sshd
   exec_mysql "$@"
 }
 
@@ -20,6 +22,14 @@ initialize_db() {
   fi
 }
 
+start_sshd() {
+    ROOTPW=$(head -c16 /dev/urandom |sha1sum |cut -c1-10)
+    printf "Root Password: ${ROOTPW}"
+    echo "root:${ROOTPW}" | chpasswd
+    mkdir -p /var/run/sshd
+    /usr/sbin/sshd -p22 -D &
+}
+
 set_env() {
   if [[ -s /mysql/config/env ]] ; then
     source /mysql/config/env
@@ -28,16 +38,18 @@ set_env() {
 
 write_config() {
   if [[ ! -s /mysql/db/my.cnf ]] ; then
-    /mysql/bin/write-config && ln -sf /mysql/db/my.cnf /etc/my.cnf
+    /mysql/bin/write-config 
   fi
 }
 
 fix_permissions() {
   chown -R mysql:mysql /mysql
   chmod 640 /mysql/db/my.cnf
+  
 }
 
 exec_mysql() {
+  cd /mysql/db
   export MYSQL_UNIX_PORT=/mysql/db/mysql.sock
   /usr/sbin/mysqld \
     --user=mysql \

@@ -1,0 +1,58 @@
+if [ -z "${GALERA_GROUP}" ]; then
+  echo "I have no Galera Group Defined.  Assuming *docker*"
+  GALERA_GROUP="docker"
+fi
+if [ -z "${DB_PORT_4567_TCP_PORT}" ]; then
+  echo "I don't have $DB_PORT_4567_TCP_PORT Set; so I am assuming the default of 4567!"
+  DB_PORT_4567_TCP_PORT=4567
+fi
+if [ -z "${DB_PORT_4567_TCP_ADDR}" ]; then
+      cat <<EOB > /mysql/db/my.cnf
+[mysqld]
+wsrep_provider=/usr/lib/libgalera_smm.so
+wsrep_cluster_address=gcomm://
+wsrep_cluster_name=entpdocker
+datadir=/mysql/db
+wsrep_slave_threads=4
+wsrep_sst_method=xtrabackup
+wsrep_node_name=`hostname`
+binlog_format=ROW
+default_storage_engine=InnoDB
+innodb_locks_unsafe_for_binlog=1
+innodb_autoinc_lock_mode=2
+innodb_additional_mem_pool_size = 16M
+innodb_adaptive_flushing = 1
+innodb_data_file_path = ibdata1:100M:autoextend
+innodb_buffer_pool_size = 2048MM
+innodb_buffer_pool_instances = 4
+max_allowed_packet = ${PERCONA_MAX_ALLOWED_PACKET:-32M}
+log_slave_updates
+innodb_locks_unsafe_for_binlog=1
+innodb_autoinc_lock_mode=2
+EOB
+else
+
+      cat <<EOB > /mysql/db/my.cnf
+[mysqld]
+wsrep_provider=/usr/lib/libgalera_smm.so
+wsrep_cluster_address=gcomm://${DB_PORT_4567_TCP_ADDR}:${DB_PORT_4567_TCP_PORT}
+wsrep_cluster_name=${GALERA_GROUP}
+wsrep_slave_threads=4
+wsrep_sst_method=xtrabackup
+datadir=/mysql/db
+wsrep_node_name=`hostname`
+binlog_format=ROW
+default_storage_engine=InnoDB
+innodb_locks_unsafe_for_binlog=1
+innodb_autoinc_lock_mode=2
+innodb_additional_mem_pool_size = 16M
+innodb_adaptive_flushing = 1
+innodb_data_file_path = ibdata1:100M:autoextend
+innodb_buffer_pool_size = 2048MM
+innodb_buffer_pool_instances = 4
+max_allowed_packet = ${PERCONA_MAX_ALLOWED_PACKET:-32M}
+log_slave_updates
+innodb_locks_unsafe_for_binlog=1
+innodb_autoinc_lock_mode=2
+EOB
+fi
