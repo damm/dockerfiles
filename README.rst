@@ -17,3 +17,8 @@ Some example Dockerfiles can be found below.
 
 `Redis <https://github.com/damm/dockerfiles/tree/master/redis/>`_.
 
+`Java <https://github.com/damm/dockerfiles/tree/master/java/>`_.
+``docker build -rm -t damm/java``
+
+`Elasticsearch <https://github.com/damm/dockerfiles/tree/master/elasticsearch/>`_.
+
