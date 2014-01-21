@@ -1,5 +1,5 @@
 FROM    ubuntu:latest
-MAINTAINER Scott M. Likens <scott@mopub.com>
+MAINTAINER Scott M. Likens <scott@likens.us>
 RUN apt-get -qq update
 RUN apt-get install -y python-dev python-setuptools libxml2-dev libxslt-dev git-core wget make g++
 RUN wget http://nodejs.org/dist/v0.10.12/node-v0.10.12.tar.gz -O /tmp/node.tar.gz

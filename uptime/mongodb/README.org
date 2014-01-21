@@ -1,6 +1,6 @@
 #+STARTUP: showeverything
 #+TITLE: Siteuptime MongoDB Docker Instance
-#+EMAIL: scott@mopub.com
+#+EMAIL: scott@likens.us
 #+AUTHOR: Scott Likens
 
 * Docker way of Hosting MongoDB
