@@ -2,12 +2,12 @@ input {
 
   redis {
     data_type => 'list'
-    format => 'json_event'
     host => 'REDIS_PORT_6379_TCP_ADDR'
     port => 'REDIS_PORT_6379_TCP_PORT'
-    key => 'systemlogs:logstash'
+    key => 'logstash:logstash'
     threads => '8'
     type => 'redis-int'
+    codec => 'plain'
   }
 
   udp {
@@ -24,25 +24,25 @@ input {
 filter {
 
 if [type] == 'apache' {
- geoip {
-  add_tag => [ "geoip" ]
-  source => "clientip"
- }
- mutate {
-  tags => [ "geoip" ]
-  add_field => [ "coords", "%{geoip.longitude}",
-                 "tmplat", "%{geoip.latitude}" ]
- }
- mutate {
-  tags => [ "geoip" ]
-  merge => [ "coords", "tmplat" ]
- }
- mutate {
-  tags => [ "geoip" ]
-  convert => [ "coords", "float" ]
-  remove => [ "tmplat" ]
- }
+   geoip {
+         add_tag => [ "geoip" ]
+         source => "clientip"
+         } 
+
 }
+if ("geoip" in [tags]) {
+    mutate {
+    add_field => [ "coords", "%{geoip.longitude}",
+                   "tmplat", "%{geoip.latitude}" ]
+           }
+    mutate {
+    merge => [ "coords", "tmplat" ]
+           }
+    mutate {
+    convert => [ "coords", "float" ]
+    remove => [ "tmplat" ]
+    }
+  }
 
 if [type] == 'syslog' {
   grok {
