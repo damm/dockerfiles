@@ -6,8 +6,7 @@ input {
     port => 'REDIS_PORT_6379_TCP_PORT'
     key => 'logstash:logstash'
     threads => '8'
-    type => 'redis-int'
-    codec => 'plain'
+    codec => 'json'
   }
 
   udp {
@@ -22,27 +21,16 @@ input {
 }
 
 filter {
-
 if [type] == 'apache' {
-   geoip {
-         add_tag => [ "geoip" ]
-         source => "clientip"
-         } 
+   json {
+        source => "message"
+        }
 
-}
-if ("geoip" in [tags]) {
-    mutate {
-    add_field => [ "coords", "%{geoip.longitude}",
-                   "tmplat", "%{geoip.latitude}" ]
-           }
-    mutate {
-    merge => [ "coords", "tmplat" ]
-           }
-    mutate {
-    convert => [ "coords", "float" ]
-    remove => [ "tmplat" ]
-    }
   }
+   geoip {
+         database => "/opt/logstash/server/GeoLiteCity.dat"
+         source => "client"
+         } 
 
 if [type] == 'syslog' {
   grok {
@@ -59,15 +47,16 @@ if [type] == 'syslog' {
 
   if !("_grokparsefailure" in [tags]) {
   mutate {
-    replace => ['@source_host', '%{syslog_hostname}']
+    replace => ['source_host', '%{syslog_hostname}']
   }
 
   mutate {
-    replace => ['@message', '%{syslog_message}']
+    replace => ['message', '%{syslog_message}']
   }
 }
 }
 }
+
 
 output {
   elasticsearch_http {
